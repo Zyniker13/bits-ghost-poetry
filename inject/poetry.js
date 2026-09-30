@@ -1,4 +1,4 @@
-/* bits-ghost-poetry v1 — rewrite Ghost language-poem code cards on the published page. */
+/* bits-ghost-poetry v1.1 — rewrite Ghost language-poem code cards on the published page. */
 (function () {
   "use strict";
 
@@ -8,7 +8,6 @@
 
   var ROOT_SELECTOR = ".gh-content, .post-content, article";
   var SOURCE_SELECTOR = "pre code.language-poem, pre.language-poem, code.language-poem";
-  var STEP = /^(?:\t| {4})+/;
 
   function roots() {
     return document.querySelectorAll(ROOT_SELECTOR);
@@ -22,27 +21,24 @@
       .replace(/"/g, "&quot;");
   }
 
-  function indentSteps(line) {
-    var match = line.match(STEP);
-    if (!match) {
-      return { steps: 0, text: line };
-    }
-    var raw = match[0];
-    var steps = 0;
+  /* Count leading whitespace in space-units. Tab = 4 spaces. */
+  function leadingIndent(line) {
+    var spaces = 0;
     var i = 0;
-    while (i < raw.length) {
-      if (raw.charAt(i) === "\t") {
-        steps += 1;
+    var ch;
+    while (i < line.length) {
+      ch = line.charAt(i);
+      if (ch === " ") {
+        spaces += 1;
+        i += 1;
+      } else if (ch === "\t") {
+        spaces += 4;
         i += 1;
       } else {
-        steps += 1;
-        i += 4;
+        break;
       }
     }
-    if (steps > 8) {
-      steps = 8;
-    }
-    return { steps: steps, text: line.slice(raw.length) };
+    return { spaces: spaces, text: line.slice(i) };
   }
 
   function isAttrib(line) {
@@ -98,9 +94,14 @@
     stanzas.forEach(function (stanza) {
       html.push('<p class="stanza">');
       stanza.forEach(function (line) {
-        var parsed = indentSteps(line);
-        var cls = parsed.steps ? "line i" + parsed.steps : "line";
-        html.push('<span class="' + cls + '">' + escapeText(parsed.text) + "</span>");
+        var parsed = leadingIndent(line);
+        html.push(
+          '<span class="line" style="--poem-indent: ' +
+            parsed.spaces +
+            'ch">' +
+            escapeText(parsed.text) +
+            "</span>"
+        );
       });
       html.push("</p>");
     });

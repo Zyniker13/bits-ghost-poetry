@@ -1,6 +1,6 @@
 # Plan: Poetry Fences on a Ghost Site
 
-Status: draft for implementation.
+Status: v1.1 — indent and centering corrected after the first live preview.
 Site: [coreyjmahler.com](https://coreyjmahler.com/) (Ghost 6.9 as of 2026-09-30).
 Deployment target: Ghost Code Injection, not a theme fork and not a core patch.
 
@@ -10,7 +10,7 @@ Stop spending editorial time fighting Ghost and Markdown for verse. On the **pub
 
 - keep verse line breaks without looking like a code sample;
 - treat a blank line as a stanza break;
-- preserve leading indentation;
+- preserve leading indentation **exactly as typed** (two spaces is a real indent);
 - hang wrapped overflow under the verse line it belongs to;
 - use the theme body face, not monospace;
 - leave ordinary prose on the same site untouched.
@@ -43,11 +43,11 @@ Writers use this form:
 
 ````markdown
 ```poem
-I wandered lonely as a cloud
-That floats on high o'er vales and hills,
+I said, I will guard my ways,
+  so as not to sin with my tongue;
 
-    When all at once I saw a crowd,
-A host, of golden daffodils;
+I set a watch for my mouth
+  when the sinner stood opposite me.
 ```
 ````
 
@@ -57,11 +57,14 @@ Rules inside the fence:
 | --- | --- |
 | A non-empty line | One verse line |
 | A blank line | Stanza break |
-| Leading spaces or tabs | Indent. One tab or four spaces is one step. Remainder spaces are kept as a fractional step only if needed later; v1 maps whole steps to `i1`–`i8`. |
-| A line that is only `---` or an em dash attribution after the last stanza | Optional attribution; rendered with class `attrib` |
-| `*text*` / `**text**` / `[label](url)` | Optional, v1.1. Not required for the first published poem. |
+| Leading spaces | Indent. Each space is one indent unit. |
+| Leading tab | Four indent units. |
+| A line that is only an em-dash attribution after the last stanza | Optional attribution; rendered with class `attrib` |
+| `*text*` / `**text**` / `[label](url)` | Optional, later. Not required for v1. |
 
 Do not put HTML inside the fence in v1. Do not rely on trailing two-space Markdown breaks; the fence already preserves newlines.
+
+Two-space (and six-space, eight-space) indents are first-class. v1 treated only four-space steps as indent and discarded the rest; that failed on Psalm 38 / the 30 Sep 2026 preview and is rejected.
 
 Caption field on the Ghost code card, if used, becomes a figcaption **outside** the poem and is left alone. Attribution belongs in the fence, not in the code-card caption, unless a later pass decides otherwise.
 
@@ -90,22 +93,16 @@ On `DOMContentLoaded`, and once more on a `MutationObserver` of `.gh-content` if
 
 1. Select `pre code.language-poem, pre.language-poem, code.language-poem` inside the post body (`.gh-content`, with fallbacks `.post-content` and `article`).
 2. Skip nodes already processed (`data-bits-poem="1"` on the replacement).
-3. Read plain text. Normalize `
-` to `
-`. Strip one leading and one trailing newline if Ghost added them.
-4. Split on `
-`. Consecutive blank lines collapse to a single stanza break. Leading/trailing blank lines are dropped.
-5. For each non-empty line, count indent steps (`/^(?:\t| {4})+/` then leftover spaces ignored in v1, or mapped: 2 leftover spaces still count as no extra step).
+3. Read plain text. Normalize `\r\n` to `\n`. Strip one leading and one trailing newline if Ghost added them.
+4. Split on `\n`. Consecutive blank lines collapse to a single stanza break. Leading/trailing blank lines are dropped.
+5. For each non-empty line, count leading spaces (tab = 4). Strip that prefix from the text node. Store the count as `--poem-indent` on the line span.
 6. Build:
 
 ```html
 <div class="poem" data-bits-poem="1">
   <p class="stanza">
-    <span class="line">…</span>
-    <span class="line i1">…</span>
-  </p>
-  <p class="stanza">
-    <span class="line">…</span>
+    <span class="line" style="--poem-indent: 0ch">…</span>
+    <span class="line" style="--poem-indent: 2ch">…</span>
   </p>
 </div>
 ```
@@ -113,9 +110,7 @@ On `DOMContentLoaded`, and once more on a `MutationObserver` of `.gh-content` if
 7. Replace the `<pre>` with that `<div>`. If the `<pre>` sits in `figure.kg-code-card` **and** the figure contains only the pre (no caption), replace the whole figure. If a caption exists, replace only the pre and leave the figure/caption.
 8. Escape text when building spans. v1 is text-only inside lines.
 
-Indent classes: `i1` … `i8`. Deeper indents clamp at `i8`.
-
-Attribution heuristic (v1, conservative): if the last non-empty line matches `/^\s*(?:—|--|---)\s+\S/` and the poem has at least one prior line, render it as `<span class="attrib">` after the last stanza instead of as a verse line.
+Attribution heuristic (conservative): if the last non-empty line matches `/^\s*(?:—|--|---)\s+\S/` and the poem has at least one prior line, render it as `<span class="attrib">` after the last stanza instead of as a verse line.
 
 ## 7. CSS Contract
 
@@ -123,10 +118,9 @@ All rules are scoped to `.poem`. Never set `white-space: pre` on bare `p`.
 
 Required behavior:
 
-- `.poem` is `width: fit-content; max-width: 100%; margin-inline: auto; text-align: left` so the block is optically centered on its longest line while lines stay left-aligned.
-- Each `.line` is `display: block` with hanging indent (`padding-left` + negative `text-indent`) so a wrap is not mistaken for a new verse line.
+- `.poem` is `width: fit-content; max-width: 100%; margin-inline: auto; justify-self: center; text-align: left` so the block is optically centered on its longest line while lines stay left-aligned. Ghost canvas rules zero child margins; `justify-self: center` is required on `.gh-canvas` children.
+- Each `.line` is `display: block` with hanging indent (`1.25em` gutter) plus `padding-left: calc(1.25em + var(--poem-indent))` so a wrap is not mistaken for a new verse line and typed spaces survive as indent.
 - Stanzas have space between them, not after the last stanza.
-- Indent classes increase `padding-left` by one step each (1.25em per step, including the hanging-indent base).
 - Font inherits the post body. No monospace. No forced italic on the whole poem.
 - Narrow viewports: `.poem { width: 100%; }` so long lines wrap instead of overflowing.
 
@@ -147,11 +141,12 @@ Draft rewriter lives in `inject/poetry.js`.
 
 1. Ghost Admin → Settings → Code injection → **Site header**: wrap `inject/poetry.css` in `<style>`.
 2. Same screen → **Site footer**: wrap `inject/poetry.js` in `<script>`.
-3. Publish a draft post that contains only a ` ```poem ` card and one prose paragraph. Confirm the paragraph is unchanged and the card is rewritten.
-4. Confirm a real ` ```javascript ` (or other) code card is **not** rewritten.
-5. Confirm a Markdown card containing a ` ```poem ` fence is rewritten the same way.
+3. Replace any earlier v1 paste with v1.1. The old four-space step logic will keep flattening two-space verse if left in place.
+4. Publish a draft post that contains only a ` ```poem ` card and one prose paragraph. Confirm the paragraph is unchanged and the card is rewritten.
+5. Confirm a real ` ```javascript ` (or other) code card is **not** rewritten.
+6. Confirm a Markdown card containing a ` ```poem ` fence is rewritten the same way.
 
-If a theme stylesheet wins the cascade, tighten selectors to `.gh-content .poem` and add `!important` only on the properties that lose. Do not start with `!important`.
+If a theme stylesheet still wins the cascade on centering, add `!important` only on `margin-left`, `margin-right`, and `justify-self`.
 
 Code Injection is the right vehicle: it survives theme updates. A later optional step is to copy the same two files into a child theme. That is not required for v1.
 
@@ -160,13 +155,15 @@ Code Injection is the right vehicle: it survives theme updates. A later optional
 A draft post on coreyjmahler.com passes when all of the following are true:
 
 1. A ` ```poem ` card with two stanzas renders as two stanza groups, not as a monospace slab.
-2. A line indented with four spaces or one tab is visibly stepped in from the left margin of the poem.
+2. A line indented with **two** spaces is visibly stepped in from the left margin of the poem. Four, six, and eight spaces are visibly deeper in proportion.
 3. A verse line long enough to wrap hangs under itself rather than looking like a new line.
 4. The poem block is centered as a unit; individual lines are not centered.
 5. Adjacent prose paragraphs keep normal Markdown/Ghost spacing and wrapping.
 6. A ` ```js ` code card on the same page is untouched.
 7. Reloading the published page does not duplicate or nest `.poem` wrappers.
 8. View-source still contains the original code card HTML (the rewrite is client-side). That is acceptable.
+
+Reference fixture: the 30 Sep 2026 untitled preview of Psalm 38 (LXX / Coverdale-shaped), which uses 0 / 2 / 4 / 6 / 8 space indents in the last stanza.
 
 Newsletter appearance is not an acceptance item.
 
@@ -177,9 +174,9 @@ Newsletter appearance is not an acceptance item.
 3. Paste JS into Site footer. Confirm the draft poem transforms.
 4. Tune hanging-indent and stanza spacing against the live body font.
 5. Add one real poem to an essay and read it on a phone-width viewport.
-6. Freeze v1. Further syntax (`*emphasis*` inside lines, caesura marks, hymn modifiers) waits until a poem needs it.
+6. Freeze v1.1. Further syntax (`*emphasis*` inside lines, caesura marks, hymn modifiers) waits until a poem needs it.
 
-Estimated effort after this document: one sitting. The uncertainty is theme markup, not the algorithm.
+v1.0 shipped and was checked against the Psalm 38 preview. Failures: two-space indents dropped; leftover spaces left in the text node; Ghost canvas zeroed auto margins so the block did not center. v1.1 addresses those.
 
 ## 12. Later, Explicitly Deferred
 

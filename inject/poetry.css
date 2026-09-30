@@ -1,11 +1,13 @@
-/* bits-ghost-poetry v1 — published page only. Scope: .poem */
+/* bits-ghost-poetry v1.1 — published page only. Scope: .poem */
 
+.post-content.gh-content .poem,
 .gh-content .poem,
-.post-content .poem,
-article .poem {
+.post-content .poem {
+  display: block;
   width: fit-content;
   max-width: 100%;
   margin: 1.75em auto;
+  justify-self: center;
   text-align: left;
   font-family: inherit;
   font-style: normal;
@@ -13,61 +15,34 @@ article .poem {
   line-height: 1.45;
 }
 
+.post-content.gh-content .poem .stanza,
 .gh-content .poem .stanza,
-.post-content .poem .stanza,
-article .poem .stanza {
+.post-content .poem .stanza {
   margin: 0 0 1.15em;
 }
 
+.post-content.gh-content .poem .stanza:last-of-type,
 .gh-content .poem .stanza:last-of-type,
-.post-content .poem .stanza:last-of-type,
-article .poem .stanza:last-of-type {
+.post-content .poem .stanza:last-of-type {
   margin-bottom: 0;
 }
 
+/*
+  Hanging wrap uses a 1.25em gutter. Author indent is --poem-indent in ch,
+  one unit per leading space (tab = 4) counted by poetry.js.
+*/
+.post-content.gh-content .poem .line,
 .gh-content .poem .line,
-.post-content .poem .line,
-article .poem .line {
+.post-content .poem .line {
   display: block;
-  padding-left: 1.25em;
+  padding-left: calc(1.25em + var(--poem-indent, 0ch));
   text-indent: -1.25em;
+  white-space: pre-wrap;
 }
 
-.gh-content .poem .line.i1,
-.post-content .poem .line.i1,
-article .poem .line.i1 { padding-left: 2.5em; }
-
-.gh-content .poem .line.i2,
-.post-content .poem .line.i2,
-article .poem .line.i2 { padding-left: 3.75em; }
-
-.gh-content .poem .line.i3,
-.post-content .poem .line.i3,
-article .poem .line.i3 { padding-left: 5em; }
-
-.gh-content .poem .line.i4,
-.post-content .poem .line.i4,
-article .poem .line.i4 { padding-left: 6.25em; }
-
-.gh-content .poem .line.i5,
-.post-content .poem .line.i5,
-article .poem .line.i5 { padding-left: 7.5em; }
-
-.gh-content .poem .line.i6,
-.post-content .poem .line.i6,
-article .poem .line.i6 { padding-left: 8.75em; }
-
-.gh-content .poem .line.i7,
-.post-content .poem .line.i7,
-article .poem .line.i7 { padding-left: 10em; }
-
-.gh-content .poem .line.i8,
-.post-content .poem .line.i8,
-article .poem .line.i8 { padding-left: 11.25em; }
-
+.post-content.gh-content .poem .attrib,
 .gh-content .poem .attrib,
-.post-content .poem .attrib,
-article .poem .attrib {
+.post-content .poem .attrib {
   display: block;
   margin-top: 0.85em;
   font-style: italic;
@@ -76,9 +51,10 @@ article .poem .attrib {
 }
 
 @media (max-width: 720px) {
+  .post-content.gh-content .poem,
   .gh-content .poem,
-  .post-content .poem,
-  article .poem {
+  .post-content .poem {
     width: 100%;
+    justify-self: stretch;
   }
 }
