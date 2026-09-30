@@ -1,0 +1,84 @@
+/* bits-ghost-poetry v1 — published page only. Scope: .poem */
+
+.gh-content .poem,
+.post-content .poem,
+article .poem {
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.75em auto;
+  text-align: left;
+  font-family: inherit;
+  font-style: normal;
+  font-variant-ligatures: common-ligatures;
+  line-height: 1.45;
+}
+
+.gh-content .poem .stanza,
+.post-content .poem .stanza,
+article .poem .stanza {
+  margin: 0 0 1.15em;
+}
+
+.gh-content .poem .stanza:last-of-type,
+.post-content .poem .stanza:last-of-type,
+article .poem .stanza:last-of-type {
+  margin-bottom: 0;
+}
+
+.gh-content .poem .line,
+.post-content .poem .line,
+article .poem .line {
+  display: block;
+  padding-left: 1.25em;
+  text-indent: -1.25em;
+}
+
+.gh-content .poem .line.i1,
+.post-content .poem .line.i1,
+article .poem .line.i1 { padding-left: 2.5em; }
+
+.gh-content .poem .line.i2,
+.post-content .poem .line.i2,
+article .poem .line.i2 { padding-left: 3.75em; }
+
+.gh-content .poem .line.i3,
+.post-content .poem .line.i3,
+article .poem .line.i3 { padding-left: 5em; }
+
+.gh-content .poem .line.i4,
+.post-content .poem .line.i4,
+article .poem .line.i4 { padding-left: 6.25em; }
+
+.gh-content .poem .line.i5,
+.post-content .poem .line.i5,
+article .poem .line.i5 { padding-left: 7.5em; }
+
+.gh-content .poem .line.i6,
+.post-content .poem .line.i6,
+article .poem .line.i6 { padding-left: 8.75em; }
+
+.gh-content .poem .line.i7,
+.post-content .poem .line.i7,
+article .poem .line.i7 { padding-left: 10em; }
+
+.gh-content .poem .line.i8,
+.post-content .poem .line.i8,
+article .poem .line.i8 { padding-left: 11.25em; }
+
+.gh-content .poem .attrib,
+.post-content .poem .attrib,
+article .poem .attrib {
+  display: block;
+  margin-top: 0.85em;
+  font-style: italic;
+  text-indent: 0;
+  padding-left: 0;
+}
+
+@media (max-width: 720px) {
+  .gh-content .poem,
+  .post-content .poem,
+  article .poem {
+    width: 100%;
+  }
+}
